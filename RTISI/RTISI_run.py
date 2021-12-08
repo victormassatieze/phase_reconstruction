@@ -34,6 +34,8 @@ def run_RTISI(file_name, fft_size, hop_size):
     # Max number of itertions:
     iteration_max = 300
     
+    print("RTISI: start; file: {0}".format(file_name))
+    
     for frame in range(n_frames):
         iteration = 0
         

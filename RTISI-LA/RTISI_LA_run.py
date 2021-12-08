@@ -31,6 +31,8 @@ def run_RTISI_LA(file_name, fft_size, hop_size, LA: int = None):
                     ((n_frames - 1)*hop_size + fft_size - input_signal.size + fft_size*LA)),
                     'constant')
     
+    print("RTISI-LA: start; file: {0}".format(file_name))
+    
     # Max number of itertions:
     iteration_max = 300
     
