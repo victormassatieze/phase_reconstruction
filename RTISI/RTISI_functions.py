@@ -138,6 +138,3 @@ def update_yRTISI(yRTISI, x_win, fft_size, hop_size, frame):
          
 def save_signal(y, file, sr):
     sf.write(file, y, sr)
-    
-    
-

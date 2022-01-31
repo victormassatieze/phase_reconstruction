@@ -1,13 +1,14 @@
+#%%
 import librosa
 import numpy as np
 import soundfile as sf
 
 from RTISI_LA_functions import *
 
-def run_RTISI_LA(file_name, fft_size, hop_size, LA: int = None):
+def run_RTISI_LA(file_name, fft_size, hop_size, in_gain = 1, LA: int = None):
     
     input_file = "./originais/"+file_name
-    output_file = "./resultados/RTISI_LA_"+file_name
+    output_file = "./resultados/fft2048/RTISI_LA_"+file_name
     sr = 48000
     
     input_signal = load_signal(input_file, sr)
@@ -95,7 +96,13 @@ def run_RTISI_LA(file_name, fft_size, hop_size, LA: int = None):
     
     print("RTISI-LA done")
     to_be_saved = yRTISI[:input_signal.size]
-    save_signal(gain*to_be_saved/np.max(to_be_saved), output_file, sr)
+    save_signal(in_gain*gain*to_be_saved/np.max(to_be_saved), output_file, sr)
+
+
     
-#if __name__ == '__main__':
-#    main()
+if __name__ == '__main__':
+    file_name = 'x1.wav'
+    fft_size = 2048
+    hop_size = fft_size // 4
+    run_RTISI_LA(file_name, fft_size, hop_size)
+# %%

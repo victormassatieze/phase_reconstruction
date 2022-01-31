@@ -4,10 +4,10 @@ import soundfile as sf
 
 from RTISI_functions import *
 
-def run_RTISI(file_name, fft_size, hop_size):
+def run_RTISI(file_name, fft_size, hop_size, in_gain = 1):
     
     input_file = "./originais/"+file_name
-    output_file = "./resultados/RTISI_"+file_name
+    output_file = "./resultados/fft1024/RTISI_"+file_name
     sr = 48000
     
     input_signal = load_signal(input_file, sr)
@@ -16,12 +16,12 @@ def run_RTISI(file_name, fft_size, hop_size):
     # Minimum relative distance threshold:
     threshold = 0.01
     
-    # Accumulate windows:
-    windows_acc = np.empty( shape=(0,) )
-    
     # Normalization step:
     gain = np.max(input_signal)
     input_signal = input_signal*1./gain
+    
+    # Accumulate windows:
+    windows_acc = np.empty( shape=(0,) )
     
     # Perform zero padding at the end in case the signal doesn't fit the number
     # of FFT windows:
@@ -94,8 +94,10 @@ def run_RTISI(file_name, fft_size, hop_size):
         #print(yRTISI[frame])
     
     print("RTISI done")
+    
     to_be_saved = yRTISI[:input_signal.size]
-    save_signal(gain*to_be_saved/np.max(to_be_saved), output_file, sr)
+    #print("RTISI done with gain: {0}".format(gain/np.max(to_be_saved)))
+    save_signal(in_gain*gain*to_be_saved/np.max(to_be_saved), output_file, sr)
     
 if __name__ == '__main__':
     main()
