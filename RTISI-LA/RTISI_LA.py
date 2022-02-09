@@ -4,25 +4,17 @@ import soundfile as sf
 import matplotlib.pyplot as plt
 import soundfile as sf
 
-#from RTISI_functions_novo import *
-
-def RTISI_LA(fname, fft_size, w_size, hop_size, LA, thresh):
+def RTISI_LA(Y_mag, FS, fft_size, w_size, hop_size, LA, thresh):
     
-    in_file = './originais/'+fname
-    out_file = './resultados/NOVO/RTISI_LA_'+fname
-    
-    input_signal, FS = librosa.load(in_file, mono = True)
-    
-    Y = librosa.stft(input_signal, fft_size, hop_size, w_size, window = 'hamming',center=False)
+    out_file = './resultados/RTISI_LA_out.wav'
     
     # --- Salva o numero de frames:
-    n_frames = Y.shape[1]
+    n_frames = Y_mag.shape[1]
     
     # --- Realiza zero padding para tratar dos últimos frames:
-    Y = np.pad(Y, ((0, 0), (0, 2*LA)), mode = 'reflect')
+    Y_mag = np.pad(Y_mag, ((0, 0), (0, 2*LA)), mode = 'reflect')
     
-    # --- Salva o espectro de magnitude, que e' a entrada do algoritmo:
-    Y_mag = np.abs(Y)
+    # --- Protótipo do espectro da saida:
     END_SPEC = np.zeros(Y_mag.shape)
     
     # --- Inicializacoes em zero:
@@ -33,7 +25,7 @@ def RTISI_LA(fname, fft_size, w_size, hop_size, LA, thresh):
     # --- Define numericamente a janela:
     window = np.hamming(w_size)
     
-    print('Inicio: RTISI-LA para {0} com {1} quadros'.format(fname,n_frames))
+    print('Inicio: RTISI-LA para {0} quadros'.format(n_frames))
     
     for frame in range(n_frames):
         
@@ -105,6 +97,8 @@ def RTISI_LA(fname, fft_size, w_size, hop_size, LA, thresh):
     
     print('Fim RTISI-LA')
     
+    sf.write(out_file, y_reconstruido/np.max(np.abs(y_reconstruido)), FS)
+    
     fig, ax = plt.subplots()
     img = librosa.display.specshow(librosa.amplitude_to_db(END_SPEC, ref=np.max), y_axis='linear', x_axis='time', ax=ax)
     ax.set_title('Power spectrogram')
@@ -113,7 +107,5 @@ def RTISI_LA(fname, fft_size, w_size, hop_size, LA, thresh):
     fig, ax = plt.subplots()
     img = librosa.display.specshow(librosa.amplitude_to_db(Y_mag, ref=np.max), y_axis='linear', x_axis='time', ax=ax)
     ax.set_title('Power spectrogram')
-    fig.colorbar(img, ax=ax, format="%+2.0f dB")
-    
-    sf.write(out_file, y_reconstruido/np.max(np.abs(y_reconstruido)), FS)  
+    fig.colorbar(img, ax=ax, format="%+2.0f dB")  
     

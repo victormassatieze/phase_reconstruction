@@ -4,19 +4,9 @@ import soundfile as sf
 import matplotlib.pyplot as plt
 import soundfile as sf
 
-#from RTISI_functions_novo import *
-
-def RTISI(fname, fft_size, w_size, hop_size, thresh):
+def RTISI(Y_mag, FS, fft_size, w_size, hop_size, thresh):
     
-    in_file = './originais/'+fname
-    out_file = './resultados/NOVO/RTISI_'+fname
-    
-    input_signal, FS = librosa.load(in_file, mono = True)
-    
-    Y = librosa.stft(input_signal, fft_size, hop_size, w_size, window = 'hamming')
-    
-    # --- Salva o espectro de magnitude, que e' a entrada do algoritmo:
-    Y_mag = np.abs(Y)
+    out_file = './resultados/RTISI_out.wav'
     
     # --- Salva o numero de frames:
     n_frames = Y_mag.shape[1]
@@ -29,7 +19,7 @@ def RTISI(fname, fft_size, w_size, hop_size, thresh):
     # --- Define numericamente a janela:
     window = np.hamming(w_size)
     
-    print('Inicio: RTISI para {0}'.format(fname))
+    print('Inicio: RTISI para {0} quadros'.format(n_frames))
     
     for frame in range(n_frames):
         
