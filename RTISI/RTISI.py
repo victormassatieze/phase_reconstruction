@@ -11,15 +11,21 @@ def RTISI(Y_mag, FS, fft_size, w_size, hop_size, thresh):
     # --- Salva o numero de frames:
     n_frames = Y_mag.shape[1]
     
+    # --- Protótipo do espectro da saida:
+    END_SPEC = np.zeros(Y_mag.shape)
+    
     # --- Inicializacoes em zero:
     y_RTISI = np.zeros(n_frames*hop_size + fft_size)
     x = np.zeros(n_frames*hop_size + fft_size)
     windows_acc = np.zeros(n_frames*hop_size + fft_size)
     
     # --- Define numericamente a janela:
-    window = np.hamming(w_size)
+    window = np.zeros(fft_size)
+    window[:w_size] += np.hamming(w_size)
     
     print('Inicio: RTISI para {0} quadros'.format(n_frames))
+    
+    max_iter = 0
     
     for frame in range(n_frames):
         
@@ -43,6 +49,7 @@ def RTISI(Y_mag, FS, fft_size, w_size, hop_size, thresh):
         Dprev = Dcur + 1000
         
         # --- Iteracoes segundo o diagrama de blocos:
+        iterc = 0
         while np.abs(Dprev - Dcur)/Dprev > thresh:
             
             # IFFT
@@ -63,17 +70,20 @@ def RTISI(Y_mag, FS, fft_size, w_size, hop_size, thresh):
             Dprev = Dcur
             Dcur = np.sum((np.abs(X_win) - np.abs(Y_mag[:,frame]))**2)
             
+            iterc += 1
+            
+        if iterc > max_iter:
+            max_iter = iterc
+            
         # --- Acumulo do resultado:
         y_RTISI[begin:end] += window*x_win
         
-    begin_last = hop_size*n_frames
-    end_last = begin_last + fft_size
-    windows_acc[begin_last:end_last] += window**2
+    plt.plot(windows_acc[:end])
     
     # Corrigindo o erro de janelamento no resultado acumulado:
-    y_reconstruido = y_RTISI[:end]/windows_acc[:end]
+    y_reconstruido = y_RTISI[:end]/np.sqrt(windows_acc[:end])
     
-    print('Fim RTISI')
+    print('Fim RTISI, maximo num. de iteracoes: {0}'.format(max_iter))
     
     sf.write(out_file, y_reconstruido/np.max(np.abs(y_reconstruido)), FS)  
     

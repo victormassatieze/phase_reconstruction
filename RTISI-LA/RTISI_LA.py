@@ -23,13 +23,14 @@ def RTISI_LA(Y_mag, FS, fft_size, w_size, hop_size, LA, thresh):
     windows_acc = np.zeros((n_frames+LA+1)*hop_size + fft_size)
     
     # --- Define numericamente a janela:
-    window = np.hamming(w_size)
+    window = np.zeros(fft_size)
+    window[:w_size] += np.hamming(w_size)
     
     print('Inicio: RTISI-LA para {0} quadros'.format(n_frames))
     
+    max_iter = 0
+    
     for frame in range(n_frames):
-        
-        #print('Frame {0} de {1}'.format(frame, n_frames-1))
         
         y = np.zeros((LA+1,window.size))
         # --- Inicializacao:
@@ -60,6 +61,7 @@ def RTISI_LA(Y_mag, FS, fft_size, w_size, hop_size, LA, thresh):
         Dprev = Dcur + 1000
         
         # --- Iteracoes segundo o diagrama de blocos:
+        iterc = 0
         while np.abs(Dprev - Dcur)/Dprev > thresh:
             
             # IFFT
@@ -76,26 +78,27 @@ def RTISI_LA(Y_mag, FS, fft_size, w_size, hop_size, LA, thresh):
             for i in range(LA + 1):
                 x_win[i,:] = window*x[begin+i*hop_size:end+i*hop_size]
                 #FFT
-                X_win[i,:] = np.fft.rfft(x_win[i,:])
+                X_win[i,:] = np.fft.rfft(x_win[i,:])            
             
             # Atualizacao das distancias:
             Dprev = Dcur
             Dcur = np.sum((np.abs(X_win[0,:]) - np.abs(Y_mag[:,frame]))**2)
             
+            iterc += 1
+            
+        if iterc > max_iter:
+            max_iter = iterc
+            
         # --- Acumulo do resultado:
         y_RTISI[begin:end] += window*x_win[0,:]
         END_SPEC[:,frame] = np.abs(X_win[0,:])
-        
-    begin_last = hop_size*n_frames
-    end_last = begin_last + fft_size
-    windows_acc[begin_last:end_last] += window**2
     
     plt.plot(windows_acc[:end])
     
     # Corrigindo o erro de janelamento no resultado acumulado:
-    y_reconstruido = y_RTISI[:end]/windows_acc[:end]
+    y_reconstruido = y_RTISI[:end]/np.sqrt(windows_acc[:end])
     
-    print('Fim RTISI-LA')
+    print('Fim RTISI-LA, maximo num. de iteracoes: {0}'.format(max_iter))
     
     sf.write(out_file, y_reconstruido/np.max(np.abs(y_reconstruido)), FS)
     
